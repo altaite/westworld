@@ -1,0 +1,11 @@
+# Rust
+/target/
+**/*.rs.bk
+
+# JetBrains IDE
+.idea/
+*.iml
+
+# OS cruft
+.DS_Store
+Thumbs.db

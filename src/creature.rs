@@ -32,7 +32,9 @@ impl Creature {
             health: 1.0,
             satiety: 1.0,
             water: 1.0,
-            max_step: 1.0,
+            // Maximum distance a creature can travel in one second.
+            // A larger value helps make movement visually noticeable.
+            max_step: 100.0,
             max_turn: PI / 4.0,
         }
     }
@@ -80,8 +82,8 @@ mod tests {
     #[test]
     fn movement_and_rotation_respect_limits() {
         let mut creature = Creature::new(Position::new(0.0, 0.0), 0.0);
-        creature.move_forward(2.0);
-        assert!((creature.position.x - 1.0).abs() < 1e-6);
+        creature.move_forward(200.0);
+        assert!((creature.position.x - 100.0).abs() < 1e-6);
         assert!(creature.position.y.abs() < 1e-6);
 
         creature.rotate(PI);

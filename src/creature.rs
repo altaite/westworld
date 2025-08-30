@@ -1,6 +1,7 @@
+use bevy::prelude::*;
 use std::f32::consts::PI;
 
-#[derive(Debug, Clone, Copy)]
+#[derive(Component, Debug, Clone, Copy)]
 pub struct Position {
     pub x: f32,
     pub y: f32,
@@ -12,15 +13,15 @@ impl Position {
     }
 }
 
-#[derive(Debug)]
+#[derive(Component, Debug)]
 pub struct Creature {
     pub position: Position,
     pub angle: f32,
     health: f32,
     satiety: f32,
     water: f32,
-    max_step: f32,
-    max_turn: f32,
+    pub max_step: f32,
+    pub max_turn: f32,
 }
 
 impl Creature {

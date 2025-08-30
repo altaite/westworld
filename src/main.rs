@@ -1,19 +1,30 @@
 mod creature;
 
+use bevy::diagnostic::{DiagnosticsStore, FrameTimeDiagnosticsPlugin};
 use bevy::input::mouse::{MouseMotion, MouseWheel};
+use bevy::prelude::shape;
 use bevy::prelude::*;
 use bevy::sprite::MaterialMesh2dBundle;
-use bevy::prelude::shape;
 use creature::{Creature, Position};
 use rand::prelude::*;
 
 const NUM_CREATURES: usize = 20;
 
+#[derive(Resource, Default)]
+struct ComputationCounter(u32);
+
+#[derive(Component)]
+struct StatsText;
+
 fn main() {
     App::new()
-        .add_plugins(DefaultPlugins)
+        .add_plugins((DefaultPlugins, FrameTimeDiagnosticsPlugin))
+        .init_resource::<ComputationCounter>()
         .add_systems(Startup, setup)
-        .add_systems(Update, (random_movement, camera_zoom, camera_pan))
+        .add_systems(
+            Update,
+            (random_movement, camera_zoom, camera_pan, update_stats),
+        )
         .run();
 }
 
@@ -40,18 +51,45 @@ fn setup(
                         sides: 3,
                     }))
                     .into(),
-                material: materials.add(ColorMaterial::from(Color::rgb(rng.gen(), rng.gen(), rng.gen()))),
+                material: materials.add(ColorMaterial::from(Color::rgb(
+                    rng.gen(),
+                    rng.gen(),
+                    rng.gen(),
+                ))),
                 transform: Transform::from_xyz(position.x, position.y, 0.0)
-                    .with_rotation(Quat::from_rotation_z(angle)),
+                    .with_rotation(Quat::from_rotation_z(angle))
+                    .with_scale(Vec3::new(0.5, 1.0, 1.0)),
                 ..default()
             },
         ));
     }
+
+    let text_style = TextStyle {
+        font: default(),
+        font_size: 20.0,
+        color: Color::WHITE,
+    };
+    commands.spawn((
+        StatsText,
+        TextBundle::from_sections([
+            TextSection::new("FPS: ", text_style.clone()),
+            TextSection::new("0", text_style.clone()),
+            TextSection::new(" | Computations: ", text_style.clone()),
+            TextSection::new("0", text_style),
+        ])
+        .with_style(Style {
+            position_type: PositionType::Absolute,
+            top: Val::Px(5.0),
+            left: Val::Px(5.0),
+            ..default()
+        }),
+    ));
 }
 
 fn random_movement(
     mut query: Query<(&mut Creature, &mut Transform)>,
     time: Res<Time>,
+    mut counter: ResMut<ComputationCounter>,
 ) {
     let mut rng = thread_rng();
     for (mut creature, mut transform) in &mut query {
@@ -62,6 +100,7 @@ fn random_movement(
         transform.translation.x = creature.position.x;
         transform.translation.y = creature.position.y;
         transform.rotation = Quat::from_rotation_z(creature.angle);
+        counter.0 += 1;
     }
 }
 
@@ -74,6 +113,23 @@ fn camera_zoom(
             proj.scale = (proj.scale - ev.y * 0.1).clamp(0.1, 10.0);
         }
     }
+}
+
+fn update_stats(
+    diagnostics: Res<DiagnosticsStore>,
+    mut counter: ResMut<ComputationCounter>,
+    mut query: Query<&mut Text, With<StatsText>>,
+) {
+    let fps = diagnostics
+        .get(FrameTimeDiagnosticsPlugin::FPS)
+        .and_then(|d| d.smoothed())
+        .unwrap_or(0.0);
+    let computations = counter.0;
+    for mut text in &mut query {
+        text.sections[1].value = format!("{fps:.1}");
+        text.sections[3].value = computations.to_string();
+    }
+    counter.0 = 0;
 }
 
 fn camera_pan(

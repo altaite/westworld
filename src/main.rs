@@ -65,7 +65,7 @@ fn setup(
     }
 
     let text_style = TextStyle {
-        font: default(),
+        font: bevy::text::DEFAULT_FONT_HANDLE.typed(),
         font_size: 20.0,
         color: Color::WHITE,
     };

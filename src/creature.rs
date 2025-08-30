@@ -1,5 +1,5 @@
 use bevy::prelude::*;
-use std::f32::consts::PI;
+use std::f32::consts::{PI, TAU};
 
 #[derive(Component, Debug, Clone, Copy)]
 pub struct Position {
@@ -29,7 +29,7 @@ impl Creature {
             // Maximum distance a creature can travel in one second.
             // A larger value helps make movement visually noticeable.
             max_step: 100.0,
-            max_turn: PI / 4.0,
+            max_turn: TAU,
         }
     }
 
@@ -56,7 +56,7 @@ mod tests {
         assert!(creature.position.x.abs() < 1e-6);
         assert!((creature.position.y - 100.0).abs() < 1e-6);
 
-        creature.rotate(PI);
-        assert!((creature.angle - PI / 4.0).abs() < 1e-6);
+        creature.rotate(10.0 * TAU);
+        assert!(creature.angle.abs() < 1e-6);
     }
 }
